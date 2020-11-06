@@ -163,7 +163,7 @@ const App = () => {
         });
       });
 
-      var fileTitle = "orders"; // or 'my-unique-title'
+      var fileTitle = "cleancsv"; // or 'my-unique-title'
 
       exportCSVFile(headers, itemsFormatted, fileTitle);
     }
