@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { CSVReader } from "react-papaparse";
-import { CSVLink } from "react-csv";
 import "./App.css";
 
 const App = () => {
@@ -32,7 +31,7 @@ const App = () => {
     // var newPhone = phone;
     // var time = new Date().getHours();
     if (phone !== undefined) {
-      phone = phone.toString();
+      //  phone = phone.toString();
       phone = phone.trim();
       let newPhone;
       if (
@@ -40,18 +39,23 @@ const App = () => {
         phone.charAt(0) === "8" ||
         phone.charAt(0) === "9"
       ) {
+        //   phone = parseInt(phone);
         newPhone = "0" + phone;
       } else if (phone.substring(0, 4) === "2340") {
         let slashed = phone.slice(4);
+        //phone = parseInt(slashed);
         newPhone = "0" + slashed;
       } else if (phone.substring(0, 5) === "+2340") {
         let slashed = phone.slice(5);
+        //phone = parseInt(slashed);
         newPhone = "0" + slashed;
       } else if (phone.substring(0, 3) === "234") {
         let slashed = phone.slice(3);
+        //    phone = parseInt(slashed);
         newPhone = "0" + slashed;
       } else if (phone.substring(0, 4) === "+234") {
         let slashed = phone.slice(4);
+        //     phone = parseInt(slashed);
         newPhone = "0" + slashed;
       } else {
         newPhone = phone;
@@ -60,17 +64,13 @@ const App = () => {
     }
   };
 
-  if (!isloading) {
-    console.log(passengerInfo.length);
-  }
-
   const handleFormat = () => {
     let info = [];
     if (!isloading) {
-      for (let i = 1; i < passengerInfo.length - 1; i++) {
+      for (let i = 1; i <= passengerInfo.length - 2; i++) {
         //   info.push(clean(clean(passengerInfo[i].data[15])));
         const data = {
-          "Phone Number": clean(clean(passengerInfo[i].data[15])),
+          phone_no: clean(passengerInfo[i].data[15]),
         };
 
         info.push(data);
@@ -81,9 +81,93 @@ const App = () => {
     }
   };
 
+  if (!isloading) {
+    console.log(phoneNumbers);
+    //  console.log(phoneNumbers.length);
+  }
+
   //headers = [{ label: "Phone Number", key: "Phone Number" }];
 
-  console.log(phoneNumbers);
+  //  console.log(headers);
+
+  // console.log(passengerInfo);
+
+  function convertToCSV(objArray) {
+    if (!isloading) {
+      var array = typeof objArray != "object" ? JSON.parse(objArray) : objArray;
+      var str = "";
+
+      for (var i = 0; i < array.length; i++) {
+        var line = "";
+        for (var index in array[i]) {
+          if (line !== "") line += ",";
+
+          line += array[i][index];
+        }
+
+        str += line + "\r\n";
+      }
+
+      return str;
+    }
+  }
+
+  function exportCSVFile(headers, items, fileTitle) {
+    if (!isloading) {
+      if (headers) {
+        items.unshift(headers);
+      }
+
+      // Convert Object to JSON
+      var jsonObject = JSON.stringify(items);
+
+      var csv = convertToCSV(jsonObject);
+
+      var exportedFilenmae = fileTitle + ".csv" || "export.csv";
+
+      var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      if (navigator.msSaveBlob) {
+        // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+      } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) {
+          // feature detection
+          // Browsers that support HTML5 download attribute
+          var url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", exportedFilenmae);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    }
+  }
+
+  function download() {
+    if (!isloading) {
+      var headers = {
+        phone_no: "Phone Number",
+      };
+
+      const itemsNotFormatted = phoneNumbers;
+
+      var itemsFormatted = [];
+
+      // format the data
+      itemsNotFormatted.forEach((item) => {
+        itemsFormatted.push({
+          phone_no: item.phone_no,
+        });
+      });
+
+      var fileTitle = "orders"; // or 'my-unique-title'
+
+      exportCSVFile(headers, itemsFormatted, fileTitle);
+    }
+  }
 
   return (
     <div className="card">
@@ -137,10 +221,13 @@ const App = () => {
           </aside>
         )}
       </CSVReader>
-      {/*  <button onClick={handleFormat}>Clean Data</button> */}
 
-      {isClean ? (
-        <CSVLink data={phoneNumbers}>
+      {isClean && phoneNumbers !== undefined && phoneNumbers.length > 0 ? (
+        /*     <CSVLink
+          data={phoneNumbers}
+          headers={headers}
+          filename={"Passengers_information (cleaned).csv"}
+        >
           <button
             className="button"
             style={{
@@ -152,7 +239,20 @@ const App = () => {
           >
             Download New CSV
           </button>
-        </CSVLink>
+        </CSVLink> */
+        // <Dsv phone={phoneNumbers} />
+        <button
+          onClick={download}
+          className="button"
+          style={{
+            backgroundColor: "green",
+            padding: "15px",
+            marginLeft: "40%",
+            marginTop: "50px",
+          }}
+        >
+          Download New CSV
+        </button>
       ) : (
         ""
       )}
